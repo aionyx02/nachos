@@ -83,12 +83,64 @@ ExceptionHandler(ExceptionType which)
 			val=kernel->machine->ReadRegister(4);
 			cout << "Sleep Time:" << val << "(ms)" << endl;
 			kernel->alarm->WaitUntil(val);
-			return;
+			break;
+		case SC_Add: {
+			int op1 = kernel->machine->ReadRegister(4);
+			int op2 = kernel->machine->ReadRegister(5);
+
+			int result = op1 + op2;
+
+			kernel->machine->WriteRegister(2, result);
+			break;
+		}
+		case SC_Sub: {
+			int op1 = kernel->machine->ReadRegister(4);
+			int op2 = kernel->machine->ReadRegister(5);
+
+			int result = op1 - op2;
+			
+			kernel->machine->WriteRegister(2, result);
+			break;
+		}
+		case SC_Mul: {
+			int op1 = kernel->machine->ReadRegister(4);
+			int op2 = kernel->machine->ReadRegister(5);
+
+			int result = op1 * op2;
+
+			kernel->machine->WriteRegister(2, result);
+			break;
+		}
+		case SC_Div: {
+			int op1 = kernel->machine->ReadRegister(4);
+			int op2 = kernel->machine->ReadRegister(5);
+			int result;
+			if (op2 == 0) {
+				cout << "Error Divide by zero" << endl;
+
+				result = 11415024;
+			}
+			else {
+				result = op1 / op2;
+			}
+
+			kernel->machine->WriteRegister(2, result);
+			break;
+		}
+        case SC_Mod: {		
+			int op1 = kernel->machine->ReadRegister(4);
+			int op2 = kernel->machine->ReadRegister(5);
+
+			int result = op1 % op2;
+
+			kernel->machine->WriteRegister(2, result);
+			break;
+		}
 		default:
 		    cerr << "Unexpected system call " << type << "\n";
  		    break;
 	    }
-	    break;
+	    return;
 	default:
 	    cerr << "Unexpected user mode exception" << which << "\n";
 	    break;

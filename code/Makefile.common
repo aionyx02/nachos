@@ -33,7 +33,7 @@ ifeq ($(UNAME_P),x86_64)		# Host is x86_64
 	# These definitions may change as the software is updated.
 	# Some of them are also system dependent
 	CPP=/lib/cpp
-	CC = g++ -Wno-deprecated
+	CC = g++ -Wno-deprecated -std=c++11 -include bits/stdc++.h
 	LD = g++ -Wno-deprecated
 	AS = as --32
 else ifneq ($(filter %86,$(UNAME_P)),)	# Host is i386

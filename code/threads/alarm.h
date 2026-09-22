@@ -17,6 +17,7 @@
 #ifndef ALARM_H
 #define ALARM_H
 
+#include "scheduler.h"
 #include "copyright.h"
 #include "utility.h"
 #include "callback.h"
@@ -33,7 +34,7 @@ class Alarm : public CallBackObj {
 
   private:
     Timer *timer;		// the hardware timer device
-
+    sleepFunc sleeper;
     void CallBack();		// called when the hardware
 				// timer generates an interrupt
 };

@@ -184,3 +184,30 @@ Scheduler::Print()
     cout << "Ready list contents:\n";
     readyList->Apply(ThreadPrint);
 }
+
+bool sleepFunc::isEmpty() {
+	return T_list.size() == 0;
+}
+
+void sleepFunc::napTime(Thread *t, int x) {
+	ASSERT(kernel->interrupt->getLevel() == IntOff);
+	T_list.push_back(sleep_T(t, currentINT + x));
+	t->Sleep(false);
+}
+
+bool sleepFunc::wakeUp() {
+	bool woken = false;
+	currentINT++;
+	for (std::list<sleep_T>::iterator it = T_list.begin(); it!=T_list.end();) {
+		if (currentINT >= it->when) {
+			woken = true;
+			cout << "sleepFunc::wakeUp Thread woken" << endl;
+			kernel->scheduler->ReadyToRun(it->sleepThread);
+			it = T_list.erase(it);
+		}
+		else {
+			it++;
+		}
+	}
+	return woken;
+}

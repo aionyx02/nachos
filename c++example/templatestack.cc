@@ -16,11 +16,9 @@ extern "C" {
 #define ASSERT(expression)  assert(expression)
 }
 
-#include <iostream>
+#include <iostream.h>
 #include "copyright.h"
 #include "templatestack.h"
-
-using std::cout;
 
 //----------------------------------------------------------------------
 // Stack<T>::Stack

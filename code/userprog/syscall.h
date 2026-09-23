@@ -36,7 +36,7 @@
 #define SC_Mul		15
 #define SC_Div		16
 #define SC_Mod 		17
-
+#define SC_Print	18
 #ifndef IN_ASM
 
 /* The system call interface.  These are the operations the Nachos
@@ -142,6 +142,7 @@ int Sub(int op1, int op2); // op1 - op2
 int Mul(int op1, int op2); // op1 * op2
 int Div(int op1, int op2); // op1 / op2
 int Mod(int op1, int op2); // op1 % op2
+int Print(char *str);
 #endif /* IN_ASM */
 
 #endif /* SYSCALL_H */

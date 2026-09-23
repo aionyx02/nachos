@@ -48,102 +48,133 @@
 //	are in machine.h.
 //----------------------------------------------------------------------
 
-void
-ExceptionHandler(ExceptionType which)
+void ExceptionHandler(ExceptionType which)
 {
 	int	type = kernel->machine->ReadRegister(2);
 	int	val;
 
     switch (which) {
-	case SyscallException:
-	    switch(type) {
-		case SC_Halt:
-		    DEBUG(dbgAddr, "Shutdown, initiated by user program.\n");
-   		    kernel->interrupt->Halt();
-		    break;
-		case SC_PrintInt:
-			val=kernel->machine->ReadRegister(4);
-			cout << "Print integer:" <<val << endl;
-			return;
-/*		case SC_Exec:
-			DEBUG(dbgAddr, "Exec\n");
-			val = kernel->machine->ReadRegister(4);
-			kernel->StringCopy(tmpStr, retVal, 1024);
-			cout << "Exec: " << val << endl;
-			val = kernel->Exec(val);
-			kernel->machine->WriteRegister(2, val);
-			return;
-*/		case SC_Exit:
-			DEBUG(dbgAddr, "Program exit\n");
-			val=kernel->machine->ReadRegister(4);
-			cout << "return value:" << val << endl;
-			kernel->currentThread->Finish();
-			break;
-		case SC_Sleep:
-			val=kernel->machine->ReadRegister(4);
-			cout << "Sleep Time:" << val << "(ms)" << endl;
-			kernel->alarm->WaitUntil(val);
-			break;
-		case SC_Add: {
-			int op1 = kernel->machine->ReadRegister(4);
-			int op2 = kernel->machine->ReadRegister(5);
+		case SyscallException:
+	    	switch(type) {
+				case SC_Halt:
+		 		   	DEBUG(dbgAddr, "Shutdown, initiated by user program.\n");
+   		    		kernel->interrupt->Halt();
+		   		break;
+				case SC_PrintInt:
+					val=kernel->machine->ReadRegister(4);
+					cout << "Print integer:" <<val << endl;
+				return;
+				case SC_Print: {
+					int addr = kernel->machine->ReadRegister(4);
+					int val;
+					int length = 0;
 
-			int result = op1 + op2;
+					cout << "[B11415024_Print]";
 
-			kernel->machine->WriteRegister(2, result);
-			break;
-		}
-		case SC_Sub: {
-			int op1 = kernel->machine->ReadRegister(4);
-			int op2 = kernel->machine->ReadRegister(5);
+					while (true) {
+						if (!kernel->machine->ReadMem(addr, 1, &val)) {
+							break;
+						}
 
-			int result = op1 - op2;
+						char ch = (char)val;
+
+						if (ch == '\0') {
+							break;
+						}
+
+						if (ch == 'Y' || ch == 'y') {
+							cout << '*';
+						}
+						else {
+							cout << ch;
+						}
+
+						length++;
+						addr++;
+					}
 			
-			kernel->machine->WriteRegister(2, result);
-			break;
-		}
-		case SC_Mul: {
-			int op1 = kernel->machine->ReadRegister(4);
-			int op2 = kernel->machine->ReadRegister(5);
+					kernel->machine->WriteRegister(2, length);
+					break;
+				}
+/*				case SC_Exec:
+					DEBUG(dbgAddr, "Exec\n");
+					val = kernel->machine->ReadRegister(4);
+					kernel->StringCopy(tmpStr, retVal, 1024);
+					cout << "Exec: " << val << endl;
+					val = kernel->Exec(val);
+					kernel->machine->WriteRegister(2, val);
+					return;
+*/				case SC_Exit:
+					DEBUG(dbgAddr, "Program exit\n");
+					val=kernel->machine->ReadRegister(4);
+					cout << "return value:" << val << endl;
+					kernel->currentThread->Finish();
+					break;
+				case SC_Sleep:
+					val=kernel->machine->ReadRegister(4);
+					cout << "Sleep Time:" << val << "(ms)" << endl;
+					kernel->alarm->WaitUntil(val);
+					break;
+				case SC_Add: {
+					int op1 = kernel->machine->ReadRegister(4);
+					int op2 = kernel->machine->ReadRegister(5);
 
-			int result = op1 * op2;
+					int result = op1 + op2;
 
-			kernel->machine->WriteRegister(2, result);
-			break;
-		}
-		case SC_Div: {
-			int op1 = kernel->machine->ReadRegister(4);
-			int op2 = kernel->machine->ReadRegister(5);
-			int result;
-			if (op2 == 0) {
-				cout << "Error Divide by zero" << endl;
+					kernel->machine->WriteRegister(2, result);
+					break;
+				}
+				case SC_Sub: {
+					int op1 = kernel->machine->ReadRegister(4);
+					int op2 = kernel->machine->ReadRegister(5);
 
-				result = 11415024;
-			}
-			else {
-				result = op1 / op2;
-			}
+					int result = op1 - op2;
+			
+					kernel->machine->WriteRegister(2, result);
+					break;
+				}
+				case SC_Mul: {
+					int op1 = kernel->machine->ReadRegister(4);
+					int op2 = kernel->machine->ReadRegister(5);
 
-			kernel->machine->WriteRegister(2, result);
-			break;
-		}
-        case SC_Mod: {		
-			int op1 = kernel->machine->ReadRegister(4);
-			int op2 = kernel->machine->ReadRegister(5);
+					int result = op1 * op2;
 
-			int result = op1 % op2;
+					kernel->machine->WriteRegister(2, result);
+					break;
+				}
+				case SC_Div: {
+					int op1 = kernel->machine->ReadRegister(4);
+					int op2 = kernel->machine->ReadRegister(5);
+					int result;
+					if (op2 == 0) {
+						cout << "Error Divide by zero" << endl;
 
-			kernel->machine->WriteRegister(2, result);
-			break;
-		}
-		default:
-		    cerr << "Unexpected system call " << type << "\n";
- 		    break;
-	    }
-	    return;
-	default:
-	    cerr << "Unexpected user mode exception" << which << "\n";
-	    break;
-    }
+						result = 11415024;
+					}
+					else {
+						result = op1 / op2;
+					}
+
+					kernel->machine->WriteRegister(2, result);
+					break;
+				}
+        		case SC_Mod: {		
+					int op1 = kernel->machine->ReadRegister(4);
+					int op2 = kernel->machine->ReadRegister(5);
+
+					int result = op1 % op2;
+
+					kernel->machine->WriteRegister(2, result);
+					break;
+				}
+				default:
+		    		cerr << "Unexpected system call " << type << "\n";
+ 		    		break;
+	    		}
+	    		return;
+			default:
+	   			 cerr << "Unexpected user mode exception" << which << "\n";
+	   			 break;
+   	}
     ASSERTNOTREACHED();
 }

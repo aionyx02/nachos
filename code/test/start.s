@@ -137,6 +137,14 @@ PrintInt:
 	syscall
 	j       $31
 	.end    PrintInt
+ 	
+	.globl Print
+	.ent Print
+Print:
+	addiu $2,$0,SC_Print
+	syscall
+	j		$31
+	.end Print
 
 	.globl  Sleep
     .ent    Sleep

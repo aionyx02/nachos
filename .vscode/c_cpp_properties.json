@@ -1,19 +1,31 @@
 {
     "configurations": [
         {
-            "name": "Linux",
+            "name": "NachOS userprog",
             "includePath": [
-                "${workspaceFolder}/**"
+                "${workspaceFolder}/code/bin",
+                "${workspaceFolder}/code/filesys",
+                "${workspaceFolder}/code/userprog",
+                "${workspaceFolder}/code/threads",
+                "${workspaceFolder}/code/machine",
+                "${workspaceFolder}/code/lib"
             ],
             "defines": [
                 "THREADS",
-                "Dx86",
+                "USER_PROGRAM",
+                "FILESYS_NEEDED",
+                "FILESYS_STUB",
+                "x86",
                 "LINUX",
-                "BSD",
-                "DCHANGED"
+                "BSD"
+            ],
+            "forcedInclude": [
+                "/usr/include/x86_64-linux-gnu/c++/11/bits/stdc++.h"
             ],
             "compilerPath": "/usr/bin/g++",
-            "cppStandard": "c++98"
+            "cStandard": "c89",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "linux-gcc-x64"
         }
     ],
     "version": 4

@@ -138,6 +138,7 @@ PrintInt:
 	j       $31
 	.end    PrintInt
  	
+/* HW1 新增的 stub：把 syscall 編號放進 r2，再執行 syscall 進 kernel */
 	.globl Print
 	.ent Print
 Print:

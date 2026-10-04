@@ -17,4 +17,6 @@ main() {
 	PrintInt(e);
 	div0 = Div(1, 0);
 	PrintInt(div0);
+	div0 = Mod(1, 0);
+	PrintInt(div0);
 }

@@ -191,18 +191,18 @@ bool sleepFunc::isEmpty() {
 
 void sleepFunc::napTime(Thread *t, int x) {
 	ASSERT(kernel->interrupt->getLevel() == IntOff);
-	T_list.push_back(sleep_T(t, currentINT + x));
-	t->Sleep(false);
+	T_list.push_back(sleep_T(t, currentINT + x));	// 記下醒來時間
+	t->Sleep(false);								// 讓出 CPU，進入 BLOCKED
 }
 
 bool sleepFunc::wakeUp() {
 	bool woken = false;
-	currentINT++;
+	currentINT++;	// 每次 timer 中斷加 1
 	for (std::list<sleep_T>::iterator it = T_list.begin(); it!=T_list.end();) {
 		if (currentINT >= it->when) {
 			woken = true;
 			cout << "sleepFunc::wakeUp Thread woken" << endl;
-			kernel->scheduler->ReadyToRun(it->sleepThread);
+			kernel->scheduler->ReadyToRun(it->sleepThread);	// 時間到，放回 ready list
 			it = T_list.erase(it);
 		}
 		else {

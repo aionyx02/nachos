@@ -135,14 +135,14 @@ void ThreadYield();
 
 void PrintInt(int number);	//my System Call
 				
-void Sleep(int msec); // sleep msec micorsec
+void Sleep(int ticks);		// 睡 ticks 次 timer 中斷
 
-int Add(int op1, int op2); // op1 + op2
-int Sub(int op1, int op2); // op1 - op2
-int Mul(int op1, int op2); // op1 * op2
-int Div(int op1, int op2); // op1 / op2
-int Mod(int op1, int op2); // op1 % op2
-int Print(char *str);
+int Add(int op1, int op2);	// op1 + op2
+int Sub(int op1, int op2);	// op1 - op2
+int Mul(int op1, int op2);	// op1 * op2
+int Div(int op1, int op2);	// op1 / op2，除 0 回傳學號末 8 碼
+int Mod(int op1, int op2);	// op1 % op2，除 0 回傳學號末 8 碼
+int Print(char *str);		// 印 [B11415024_Print]str，回傳長度
 #endif /* IN_ASM */
 
 #endif /* SYSCALL_H */

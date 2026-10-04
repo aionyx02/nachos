@@ -28,6 +28,7 @@ const char dbgDisk = 'd'; 		// disk emulation (FILESYS)
 const char dbgFile = 'f'; 		// file system (FILESYS)
 const char dbgAddr = 'a'; 		// address spaces (USER_PROGRAM)
 const char dbgNet = 'n'; 		// network emulation (NETWORK)
+const char dbgStudent = '4';	// HW1：學號末碼，-d 4 開啟
 
 class Debug {
   public:

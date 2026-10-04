@@ -91,15 +91,15 @@ ForkExecute(Thread *t)
 void
 UserProgKernel::Run()
 {
-
+	DEBUG(dbgStudent, "[DEBUG] B11415024");	// -d 4 時印出學號
 	cout << "Total threads number is " << execfileNum << endl;
 	for (int n=1;n<=execfileNum;n++)
-		{
+	{
 		t[n] = new Thread(execfile[n]);
 		t[n]->space = new AddrSpace();
 		t[n]->Fork((VoidFunctionPtr) &ForkExecute, (void *)t[n]);
 		cout << "Thread " << execfile[n] << " is executing." << endl;
-		}
+	}
 //	Thread *t1 = new Thread(execfile[1]);
 //	Thread *t1 = new Thread("../test/test1");
 //	Thread *t2 = new Thread("../test/test2");

@@ -51,7 +51,8 @@ Alarm::CallBack()
 {
     Interrupt *interrupt = kernel->interrupt;
     MachineStatus status = interrupt->getStatus();
-    bool woken = sleeper.wakeUp();    
+    bool woken = sleeper.wakeUp();	// 每次 timer 中斷檢查有沒有人該醒
+    // 還有人在睡就不能關 timer，否則永遠叫不醒
     if (status == IdleMode && !woken && sleeper.isEmpty()) {	// is it time to quit?
         if (!interrupt->AnyFutureInterrupts()) {
 	    timer->Disable();	// turn off the timer
@@ -61,8 +62,9 @@ Alarm::CallBack()
     }
 }
 
+// 讓目前 thread 睡 x 次 timer 中斷
 void Alarm::WaitUntil(int x) {
-	IntStatus oldLevel = kernel->interrupt->SetLevel(IntOff);
+	IntStatus oldLevel = kernel->interrupt->SetLevel(IntOff);	// 關中斷，Sleep() 要求
 	Thread* t = kernel->currentThread;
 	cout << "Alarm::WaitUntil go sleep" << endl;
 	sleeper.napTime(t, x);

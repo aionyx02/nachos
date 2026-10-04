@@ -65,25 +65,25 @@ void ExceptionHandler(ExceptionType which)
 					cout << "Print integer:" <<val << endl;
 				return;
 				case SC_Print: {
-					int addr = kernel->machine->ReadRegister(4);	// r4：字串在 user 記憶體的位址
+					int addr = kernel->machine->ReadRegister(4);	// r4 存放字串在 user 記憶體的位址
 					int val;
 					int length = 0;
 
 					cout << "[B11415024_Print]";
 
 					while (true) {
-						// 逐 byte 從 user 記憶體讀字元
+						// 一次從 user 記憶體讀一個字元
 						if (!kernel->machine->ReadMem(addr, 1, &val)) {
 							break;
 						}
 
 						char ch = (char)val;
 
-						if (ch == '\0') {	// 讀到結尾就停
+						if (ch == '\0') {	// 讀到字串結尾就停止
 							break;
 						}
 
-						if (ch == 'Y' || ch == 'y') {	// landmine 字元改印 *
+						if (ch == 'Y' || ch == 'y') {	// 遇到 landmine 字元改印 *
 							cout << '*';
 						}
 						else {
@@ -112,11 +112,11 @@ void ExceptionHandler(ExceptionType which)
 					kernel->currentThread->Finish();
 					break;
 				case SC_Sleep:
-					val=kernel->machine->ReadRegister(4);	// r4：要睡的 timer 中斷次數
+					val=kernel->machine->ReadRegister(4);	// 從 r4 讀出要睡的時間
 					cout << "Sleep Time:" << val << "(ms)" << endl;
-					kernel->alarm->WaitUntil(val);	// 交給 Alarm 讓目前 thread 睡著
+					kernel->alarm->WaitUntil(val);	// 讓目前的 thread 進入睡眠
 					break;
-				// 四則運算：r4、r5 是兩個運算元，結果寫回 r2
+				// 四則運算從 r4、r5 讀出兩個數，結果寫回 r2
 				case SC_Add: {
 					int op1 = kernel->machine->ReadRegister(4);
 					int op2 = kernel->machine->ReadRegister(5);
@@ -148,10 +148,13 @@ void ExceptionHandler(ExceptionType which)
 					int op1 = kernel->machine->ReadRegister(4);
 					int op2 = kernel->machine->ReadRegister(5);
 					int result;
-					if (op2 == 0) {	// 除以 0：不真的除，避免 NachOS crash
+					if (op2 == 0) {	// 除數為 0 時不做除法，避免 NachOS crash
 						cout << "Error: Divide by zero" << endl;
 
 						result = 11415024;	// 回傳學號末 8 碼
+					}
+					else if (op1 == INT_MIN && op2 == -1) {	// 結果超出 int 範圍也會 crash
+						result = INT_MIN;
 					}
 					else {
 						result = op1 / op2;
@@ -164,10 +167,13 @@ void ExceptionHandler(ExceptionType which)
 					int op1 = kernel->machine->ReadRegister(4);
 					int op2 = kernel->machine->ReadRegister(5);
 					int result;
-					if (op2 == 0) {	// % 0 一樣會 crash，比照 Div 處理
+					if (op2 == 0) {	// 除數為 0 時和 Div 一樣處理
 						cout << "Error: Divide by zero" << endl;
 
 						result = 11415024;
+					}
+					else if (op1 == INT_MIN && op2 == -1) {	// 和 Div 相同的情況，餘數為 0
+						result = 0;
 					}
 					else {
 						result = op1 % op2;

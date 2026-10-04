@@ -49,22 +49,22 @@ class Scheduler {
     					// by the next thread that runs
 };
 
-// 睡眠佇列：記錄每個 thread 該在第幾次中斷醒來
+// 記錄睡眠中的 thread 和醒來的時間
 class sleepFunc {
 	public:
 		sleepFunc():currentINT(0) {};
-		void napTime(Thread* t, int x);	// 讓 t 睡 x 次中斷
-		bool wakeUp();				// 叫醒到期的 thread
-		bool isEmpty();				// 是否沒人在睡
+		void napTime(Thread* t, int x);	// 讓 thread t 進入睡眠
+		bool wakeUp();				// 叫醒時間到的 thread
+		bool isEmpty();				// 檢查是否沒有 thread 在睡
 	private:
 		class sleep_T {
 			public:
 				sleep_T(Thread *t, int x):sleepThread(t), when(x) {};
 				Thread* sleepThread;
-				int when;				// 醒來的中斷次數
+				int when;				// 醒來的時間
 		};
 
-		int currentINT;				// 目前累計的中斷次數
+		int currentINT;				// 目前經過的中斷次數
 		std::list<sleep_T> T_list;
 };
 #endif // SCHEDULER_H

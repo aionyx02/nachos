@@ -135,7 +135,7 @@ void ThreadYield();
 
 void PrintInt(int number);	//my System Call
 				
-void Sleep(int ticks);		// 睡 ticks 次 timer 中斷
+void Sleep(int msec); // sleep msec micorsec
 
 int Add(int op1, int op2);	// op1 + op2
 int Sub(int op1, int op2);	// op1 - op2

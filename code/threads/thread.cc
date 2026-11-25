@@ -39,6 +39,10 @@ Thread::Thread(char* threadName)
     stackTop = NULL;
     stack = NULL;
     status = JUST_CREATED;
+	arrivalTime = 0;	// default values
+	arrivalSet = false;
+	burstTime = 0;
+	priority = 0;
     for (int i = 0; i < MachineStateSize; i++) {
 	machineState[i] = NULL;		// not strictly necessary, since
 					// new thread ignores contents 
@@ -105,6 +109,9 @@ Thread::Fork(VoidFunctionPtr func, void *arg)
     scheduler->ReadyToRun(this);	// ReadyToRun assumes that interrupts 
 					// are disabled!
     (void) interrupt->SetLevel(oldLevel);
+	if (scheduler->getSchedulerType() == SRTF) {	// new thread may preempt
+		kernel->currentThread->Yield();
+	}
 }    
 
 //----------------------------------------------------------------------
@@ -212,8 +219,15 @@ Thread::Yield ()
     
     nextThread = kernel->scheduler->FindNextToRun();
     if (nextThread != NULL) {
-	kernel->scheduler->ReadyToRun(this);
-	kernel->scheduler->Run(nextThread, FALSE);
+		// keep running if next is not better
+		if ((kernel->scheduler->getSchedulerType() == Priority && nextThread->getPriority() >= priority)
+			|| (kernel->scheduler->getSchedulerType() == SRTF && nextThread->getBurstTime() >= burstTime)) {
+			kernel->scheduler->ReadyToRun(nextThread);
+		}
+		else {
+			kernel->scheduler->ReadyToRun(this);
+			kernel->scheduler->Run(nextThread, FALSE);
+		}
     }
     (void) kernel->interrupt->SetLevel(oldLevel);
 }
@@ -409,16 +423,28 @@ Thread::RestoreUserState()
 //	purposes.
 //----------------------------------------------------------------------
 
+static Semaphore *srtfDone = NULL;	// main waits for test threads (SRTF)
+
 static void
 SimpleThread()
 {
-    Thread *thread = kernel->currentThread;
-    while (thread->getBurstTime() > 0) {
-        thread->setBurstTime(thread->getBurstTime() - 1);
-	printf("%s: %d\n", kernel->currentThread->getName(), kernel->currentThread->getBurstTime());
-        //kernel->currentThread->Yield();
-	kernel->interrupt->OneTick();
-    }    
+	Thread *thread = kernel->currentThread;
+	while (thread->getBurstTime() > 0) {
+		thread->setBurstTime(thread->getBurstTime() - 1);
+		printf("%s: %d\n", kernel->currentThread->getName(), kernel->currentThread->getBurstTime());
+		kernel->interrupt->OneTick();
+		if (kernel->scheduler->getSchedulerType() == SRTF) {	// check arrival every time unit
+			IntStatus oldLevel = kernel->interrupt->SetLevel(IntOff);	// ReadyToRun needs IntOff
+			bool woken = kernel->alarm->sleeper.wakeUp();
+			kernel->interrupt->SetLevel(oldLevel);
+			if (woken) {
+				thread->Yield();	// may be preempted
+			}
+		}
+	}
+	if (srtfDone != NULL) {
+		srtfDone->V();	// this thread is done
+	}
 }
 
 //----------------------------------------------------------------------
@@ -436,14 +462,26 @@ Thread::SelfTest()
     char *name[number] 	 = {"A", "B", "C"};
     int burst[number] 	 = {3, 10, 4};
     int priority[number] = {4, 5, 3};
+	int arrive[number] = {3, 0, 5};	// arrival time (SRTF)
 
     Thread *t;
+	if (kernel->scheduler->getSchedulerType() == SRTF)
+		srtfDone = new Semaphore("srtf done", 0);
     for (int i = 0; i < number; i ++) {
         t = new Thread(name[i]);
         t->setPriority(priority[i]);
         t->setBurstTime(burst[i]);
+		if (kernel->scheduler->getSchedulerType() == SRTF)
+			t->setArrivalTime(arrive[i]);
         t->Fork((VoidFunctionPtr) SimpleThread, (void *)NULL);
     }
     kernel->currentThread->Yield();
+	if (srtfDone != NULL) {	// main has burst 0, so wait here
+		for (int i = 0; i < number; i++) {
+			srtfDone->P();
+		}
+		delete srtfDone;
+		srtfDone = NULL;
+	}
 }
 

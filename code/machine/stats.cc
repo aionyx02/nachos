@@ -16,6 +16,8 @@
 // 	Initialize performance metrics to zero, at system startup.
 //----------------------------------------------------------------------
 
+int TimerTicks = 100;	// default 100
+
 Statistics::Statistics()
 {
     totalTicks = idleTicks = systemTicks = userTicks = 0;

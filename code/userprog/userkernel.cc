@@ -27,7 +27,10 @@ UserProgKernel::UserProgKernel(int argc, char **argv)
 			debugUserProg = TRUE;
 		}
 		else if (strcmp(argv[i], "-e") == 0) {
-			execfile[++execfileNum]= argv[i + 1];
+			execfile[++execfileNum]= argv[++i];
+			execBurst[execfileNum] = 0;	// default values
+			execPriority[execfileNum] = 0;
+			execArrival[execfileNum] = 0;
 		}
 			else if (strcmp(argv[i], "-u") == 0) {
 			cout << "===========The following argument is defined in userkernel.cc" << endl;
@@ -42,6 +45,15 @@ UserProgKernel::UserProgKernel(int argc, char **argv)
 			cout << "For example:" << endl;
 			cout << "	./nachos -s : Print machine status during the machine is on." << endl;
 			cout << "	./nachos -e file1 -e file2 : executing file1 and file2."  << endl;
+		}
+		else if (strcmp(argv[i], "-burst") == 0) {	// burst time of last -e
+			execBurst[execfileNum] = atoi(argv[++i]);
+		}
+		else if (strcmp(argv[i], "-prio") == 0) {	// priority of last -e
+			execPriority[execfileNum] = atoi(argv[++i]);
+		}
+		else if (strcmp(argv[i], "-arriv") == 0) {	// arrival time of last -e
+			execArrival[execfileNum] = atoi(argv[++i]);
 		}
     }
 }
@@ -97,6 +109,11 @@ UserProgKernel::Run()
 		{
 		t[n] = new Thread(execfile[n]);
 		t[n]->space = new AddrSpace();
+
+		t[n]->setBurstTime(execBurst[n]);	// set thread parameters
+		t[n]->setPriority(execPriority[n]);
+		t[n]->setArrivalTime(execArrival[n]);
+
 		t[n]->Fork((VoidFunctionPtr) &ForkExecute, (void *)t[n]);
 		cout << "Thread " << execfile[n] << " is executing." << endl;
 		}

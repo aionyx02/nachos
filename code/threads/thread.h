@@ -102,11 +102,15 @@ class Thread {
     void Finish();  		// The thread is done executing
     
     void CheckOverflow();   	// Check if thread stack has overflowed
-    void setStatus(ThreadStatus st) { status = st; }
+    void setStatus(ThreadStatus st) { status = st;} 
+	ThreadStatus getStatus() {return status;}	// for ReadyToRun
     void setBurstTime(int t)	{burstTime = t;}
     int getBurstTime()		{return burstTime;}
     void setPriority(int t)	{priority = t;}
     int getPriority()		{return priority;}
+	int getArrivalTime() {return arrivalTime;}	// arrival time (SRTF)
+	void setArrivalTime(int t) {arrivalTime = t; arrivalSet = true;}
+	bool hasArrivalTime() {return arrivalSet;}
     char* getName() { return (name); }
     void Print() { cout << name; }
     void SelfTest();		// test whether thread impl is working
@@ -120,7 +124,9 @@ class Thread {
     ThreadStatus status;	// ready, running or blocked
     char* name;
     int burstTime;
-    int priority;	
+    int priority;
+	int arrivalTime;		// arrival time
+	bool arrivalSet;		// arrival time is given
     void StackAllocate(VoidFunctionPtr func, void *arg);
     				// Allocate a stack for thread.
 				// Used internally by Fork()

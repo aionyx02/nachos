@@ -47,19 +47,32 @@ Alarm::Alarm(bool doRandom)
 //----------------------------------------------------------------------
 
 void 
-Alarm::CallBack() 
+Alarm::CallBack()
 {
     Interrupt *interrupt = kernel->interrupt;
     MachineStatus status = interrupt->getStatus();
-    
+
     kernel->currentThread->setPriority(kernel->currentThread->getPriority() - 1);
+
+    if (kernel->scheduler->getSchedulerType() == SRTF) {
+		bool woken = sleeper.wakeUp();	// wake up arrived threads
+		// keep timer on while threads are waiting
+		if (status == IdleMode && !woken && sleeper.isEmpty()) {
+			if (!interrupt->AnyFutureInterrupts()) {
+				timer->Disable();
+			}
+		} else {
+			interrupt->YieldOnReturn();	// let arrived thread preempt
+		}
+		return;
+    }
+
     if (status == IdleMode) {	// is it time to quit?
         if (!interrupt->AnyFutureInterrupts()) {
 	    timer->Disable();	// turn off the timer
 	}
     } else {			// there's someone to preempt
-	if(kernel->scheduler->getSchedulerType() == RR ||
-            kernel->scheduler->getSchedulerType() == Priority ) {
+	if(kernel->scheduler->getSchedulerType() == RR) {	// only RR is time sliced
 		interrupt->YieldOnReturn();
 	}
     }

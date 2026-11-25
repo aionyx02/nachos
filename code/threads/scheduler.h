@@ -12,6 +12,7 @@
 #include "copyright.h"
 #include "list.h"
 #include "thread.h"
+#include <list>
 
 // The following class defines the scheduler/dispatcher abstraction -- 
 // the data structures and operations needed to keep track of which 
@@ -21,7 +22,8 @@ enum SchedulerType {
         RR,     // Round Robin
         SJF,
         Priority,
-		FIFO
+		FIFO,
+		SRTF
 };
 
 class Scheduler {
@@ -50,7 +52,24 @@ class Scheduler {
 	List<Thread *> *readyList;	// queue of threads that are ready to run,
 					// but not running
 	Thread *toBeDestroyed;		// finishing thread to be destroyed
-    					// by the next thread that runs
+};
+
+// threads waiting to arrive (reuse sleepFunc from HW1)
+class sleepFunc {
+	public:
+		sleepFunc():currentINT(0) {};
+		void park(Thread* t, int x);	// arrive after x time units
+		bool wakeUp();				// wake up arrived threads
+		bool isEmpty();				// no thread waiting
+	private:
+		class sleep_T {
+			public:
+				sleep_T(Thread *t, int x):sleepThread(t), when(x) {};
+				Thread* sleepThread;
+				int when;				// arrival time
+		};
+		int currentINT;				// current time unit
+		std::list<sleep_T> T_list;
 };
 
 #endif // SCHEDULER_H

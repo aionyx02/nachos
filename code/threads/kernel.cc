@@ -15,6 +15,7 @@
 #include "libtest.h"
 #include "elevatortest.h"
 #include "string.h"
+#include "stats.h"
 
 //----------------------------------------------------------------------
 // ThreadedKernel::ThreadedKernel
@@ -47,8 +48,15 @@ ThreadedKernel::ThreadedKernel(int argc, char **argv)
                 type = Priority;
             } else if (strcmp(argv[i + 1], "SJF") == 0) {
                 type = SJF;
-            }
+            } else if (strcmp(argv[i + 1], "SRTF") == 0) {
+				type = SRTF;	// SRTF
+			}
         }
+		else if (strcmp(argv[i], "-timertick") == 0) {	// timer interval
+			ASSERT(i + 1 < argc);
+			TimerTicks = atoi(argv[i + 1]);
+			++i;
+		}
     }
 }
 

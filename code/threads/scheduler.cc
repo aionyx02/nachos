@@ -31,17 +31,21 @@ int PriorityCompare(Thread *a, Thread *b) {
         return 0;
     return a->getPriority() > b->getPriority() ? 1 : -1;
 }
-
+// shorter burst first (SJF, SRTF)
+int ShortestCompare(Thread *a, Thread *b) {
+	if (a->getBurstTime() == b->getBurstTime()) 
+		return 0;
+	return a->getBurstTime() < b->getBurstTime() ? -1 : 1;
+}
 //----------------------------------------------------------------------
 // Scheduler::Scheduler
 // 	Initialize the list of ready but not running threads.
 //	Initially, no ready threads.
 //----------------------------------------------------------------------
 
-Scheduler::Scheduler()
-{
-	Scheduler(RR);
-}
+Scheduler::Scheduler() : Scheduler(RR) {};	// delegate to Scheduler(RR)
+
+
 
 Scheduler::Scheduler(SchedulerType type)
 {
@@ -51,14 +55,17 @@ Scheduler::Scheduler(SchedulerType type)
         	readyList = new List<Thread *>;
         	break;
     	case SJF:
-		    /* todo */
+		    readyList = new SortedList<Thread *>(ShortestCompare);	// sort by burst time
         	break;
     	case Priority:
 		    readyList = new SortedList<Thread *>(PriorityCompare);
         	break;
     	case FIFO:
-            /* todo */
+            readyList = new List<Thread *>;	// first come first served
             break;
+		case SRTF:
+			readyList = new SortedList<Thread *>(ShortestCompare);	// sort by remaining time
+			break;
    	}
 	toBeDestroyed = NULL;
 } 
@@ -84,11 +91,17 @@ Scheduler::~Scheduler()
 void
 Scheduler::ReadyToRun (Thread *thread)
 {
-    ASSERT(kernel->interrupt->getLevel() == IntOff);
+	ASSERT(kernel->interrupt->getLevel() == IntOff);
     DEBUG(dbgThread, "Putting thread on ready list: " << thread->getName());
     
+	bool arriving = (schedulerType == SRTF && thread->getStatus() == JUST_CREATED && thread->hasArrivalTime());
     thread->setStatus(READY);
-    readyList->Append(thread);
+	if (arriving) {		// wait until arrival time
+		kernel->alarm->sleeper.park(thread, thread->getArrivalTime());
+	}
+	else {
+		readyList->Append(thread);
+	}
 }
 
 //----------------------------------------------------------------------
@@ -103,7 +116,6 @@ Thread *
 Scheduler::FindNextToRun ()
 {
     ASSERT(kernel->interrupt->getLevel() == IntOff);
-
     if (readyList->IsEmpty()) {
 	return NULL;
     } else {
@@ -210,4 +222,30 @@ Scheduler::Print()
 {
     cout << "Ready list contents:\n";
     readyList->Apply(ThreadPrint);
+}
+
+bool sleepFunc::isEmpty() {
+	return T_list.size() == 0;
+}
+
+void sleepFunc::park(Thread *t, int x) {
+	ASSERT(kernel->interrupt->getLevel() == IntOff);
+	T_list.push_back(sleep_T(t, currentINT + x));	// record arrival time
+}
+
+bool sleepFunc::wakeUp() {
+	bool woken = false;
+	currentINT++;	// one time unit passed
+	for (std::list<sleep_T>::iterator it = T_list.begin(); it != T_list.end();) {
+		if (currentINT >= it->when) {
+			woken = true;
+			cout << "sleepFunc::wakeUP Thread woken" << endl;
+			kernel->scheduler->ReadyToRun(it->sleepThread);	// arrived, put into ready list
+			it = T_list.erase(it);
+		}
+		else {
+			it++;
+		}
+	}
+	return woken;
 }
